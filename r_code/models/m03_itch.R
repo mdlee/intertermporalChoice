@@ -11,7 +11,7 @@ n_sub <- 25            #i
 n_que <- 24            #j
 n_rep <- 10            #k
 
-#### Upload Data
+### Upload Data
 # Raw
 dire_t <- NA
 for (i in 1:n_sub){
