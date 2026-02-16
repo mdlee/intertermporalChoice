@@ -1,0 +1,19 @@
+# PROPORTIONAL DIFFERENCES
+# v3 lognormal for truncated normal
+# supply precision
+model{
+  for (i in 1:nParticipants){
+    # participant-specific parameters
+    sigma[i] ~ dlnorm(0, precision) 
+    delta[i] ~ dnorm(0, precision)
+    for (j in 1:nTrials){
+      # differences
+      diffRewardR[i,j] = (rLL[i, j] - rSS[i, j])/rLL[i, j]
+      diffTimeR[i,j] = (tLL[i, j] - tSS[i, j])/tLL[i, j]
+      # probability of choosing larger later
+      theta[i, j] = phi((diffRewardR[i, j] - diffTimeR[i, j] - delta[i])/sigma[i])
+      # decision
+      decision[i, j] ~ dbern(theta[i, j])   
+    }
+  }    
+}

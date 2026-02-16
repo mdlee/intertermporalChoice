@@ -1,0 +1,20 @@
+# EXPONENTIAL MODEL
+# v2 lognormal for truncated normal
+# supply precision
+model{
+  # response determinism
+  for (i in 1:nParticipants){
+    # participant-specific parameters
+    sigma[i] ~ dlnorm(0, precision)
+    kappa[i] ~ dlnorm(0, precision)
+    for (j in 1:nTrials){
+      # values for LL and SS alternatives
+      valueLL[i, j] =  rLL[i, j]*exp(-kappa[i]*tLL[i, j])
+      valueSS[i, j] =  rSS[i, j]*exp(-kappa[i]*tSS[i, j])
+      # probability of choosing larger later
+      theta[i, j] = phi((valueLL[i, j] - valueSS[i, j])/sigma[i])
+      # decision
+      decision[i, j] ~ dbern(theta[i, j])      
+    }
+  }
+}

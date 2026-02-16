@@ -1,0 +1,27 @@
+# TRADEOFF
+# v5 lognormal for truncated normal
+# supply precision
+model{
+  for (i in 1:nParticipants){
+    # participant-specific parameters
+    sigma[i]  ~ dlnorm(0, precision)
+    gamma[i] ~ dlnorm(0, precision)
+    tau[i] ~ dlnorm(0, precision)
+    kappa[i] ~ dlnorm(0, precision)
+    vartheta[i] ~ dlnorm(1, precision)
+    for (j in 1:nTrials){
+      # values, weights for LL and SS alternatives
+      valueLL[i, j] = 1/gamma[i]*log(1 + gamma[i]*rLL[i, j])        
+      valueSS[i, j] = 1/gamma[i]*log(1 + gamma[i]*rSS[i, j])
+      weightLL[i, j] = 1/tau[i]*log(1 + tau[i]*tLL[i, j])
+      weightSS[i, j] = 1/tau[i]*log(1 + tau[i]*tSS[i, j])
+      # tradeoff
+      qValue[i, j] = valueLL[i, j] - valueSS[i, j] # log(1 + ((valueLL[i, j] - valueSS[i, j])/vartheta[i])^vartheta[i])
+      qTime[i, j] = kappa[i]*log(1 + ((weightLL[i, j] - weightSS[i, j])/vartheta[i])^vartheta[i])
+      # probability of choosing larger later
+      theta[i, j] = phi((qValue[i, j] - qTime[i, j])/sigma[i])
+      # decision
+      decision[i, j] ~ dbern(theta[i, j])   
+    }
+  }    
+}
