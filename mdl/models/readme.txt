@@ -1,3 +1,3 @@
 JAGS scripts for seven cognitive models, and three contaminant models. The cognitive models are in two forms, using either the error-of-execution or probit decision rule. Those with "execution" in the filename are the error-of-execution versions; those with "scale" in the filename are the probit versions. These provide the parameter estimates and descriptive adequacies.
 
-The latent-mixture model JAGS scripts are also provided, one for each decision rule. These provide the inferences about participants' model use.
+The latent-mixture model JAGS scripts are also provided, one for each decision rule. `latentMixtureIndividualPrecision_1_jags.txt is the probit version, and `latentMixtureIndividualPrecision_2_jags.txt` is the error-of-execution version. These provide the inferences about participants' model use.
