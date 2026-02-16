@@ -1,0 +1,18 @@
+# EXPONENTIAL MODEL
+model{
+  # response determinism
+  for (i in 1:nParticipants){
+    # participant-specific parameters
+    epsilon[i] ~ dunif(0, 0.5)
+    kappa[i] ~ dlnorm(0, precision)
+    for (j in 1:nTrials){
+      # values for LL and SS alternatives
+      valueLL[i, j] =  rLL[i, j]*exp(-kappa[i]*tLL[i, j])
+      valueSS[i, j] =  rSS[i, j]*exp(-kappa[i]*tSS[i, j])
+      # probability of choosing larger later
+      theta[i, j] = ifelse(step(valueLL[i, j] - valueSS[i, j]), 1-epsilon[i], epsilon[i])
+      # decision
+      decision[i, j] ~ dbern(theta[i, j])      
+    }
+  }
+}

@@ -1,0 +1,19 @@
+# DIRECT DIFFERENCES
+# execution
+model{
+  for (i in 1:nParticipants){
+    # participant-specific parameters
+    epsilon[i] ~ dunif(0, 0.5)
+    delta[i] ~ dnorm(0, precision)
+    omega[i] ~ dunif(0, 1)
+    for (j in 1:nTrials){
+      # differences
+      diffRewardR[i,j] = omega[i]*(rLL[i, j] - rSS[i, j])
+      diffTimeR[i,j] = (1 - omega[i])*(tLL[i, j] - tSS[i, j])
+      # probability of choosing larger later
+      theta[i, j] = ifelse(step(diffRewardR[i, j] - diffTimeR[i, j] - delta[i]), 1-epsilon[i], epsilon[i])
+      # decision
+      decision[i, j] ~ dbern(theta[i, j])   
+    }
+  }    
+}
