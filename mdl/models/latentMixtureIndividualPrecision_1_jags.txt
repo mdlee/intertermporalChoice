@@ -1,0 +1,97 @@
+# LATENT MIXTURE INDIVIDUAL
+# v2 updated models
+# v4 is v2 models with lognormal priors for truncated Gaussians
+# v5 has wider prior
+# v6 has narrower prior
+# v7 has missing prior to match params
+model{
+  z ~ dcat(rep(1, nModels))
+  for (j in 1:nTrials){
+    decision[j] ~ dbern(theta[j, z])  
+  }
+  # EXPONENTIAL
+  sigmaEX ~ dlnorm(0, precision)
+  kappaEX ~ dlnorm(0, precision)
+  for (j in 1:nTrials){
+    valueLLEX[j] =  rLL[j]*exp(-kappaEX*tLL[j])
+    valueSSEX[j] =  rSS[j]*exp(-kappaEX*tSS[j])
+    theta[j, 1] = phi((valueLLEX[j] - valueSSEX[j])/sigmaEX)
+  }
+  # HYPERBOLIC
+  sigmaHC ~ dlnorm(0, precision)
+  kappaHC ~ dlnorm(0, precision)
+  for (j in 1:nTrials){
+    valueLLHC[j] =  rLL[j]/(1 + kappaHC*tLL[j])
+    valueSSHC[j] =  rSS[j]/(1 + kappaHC*tSS[j])
+    theta[j, 2] = phi((valueLLHC[j] - valueSSHC[j])/sigmaHC)
+  }
+  # HYPERBOLOID
+  sigmaHY  ~ dlnorm(0, precision)
+  kappaHY ~ dlnorm(0, precision)
+  tauHY ~ dlnorm(0, precision)
+  for (j in 1:nTrials){
+    valueLLHY[j] =  rLL[j]/(1 + kappaHY*tLL[j])^tauHY
+    valueSSHY[j] =  rSS[j]/(1 + kappaHY*tSS[j])^tauHY
+    theta[j, 3] = phi((valueLLHY[j] - valueSSHY[j])/sigmaHY)
+  }
+  # PROPORTIONAL DIFFERENCES
+  sigmaPD ~ dlnorm(0, precision)
+  deltaPD ~ dnorm(0, precision)
+  for (j in 1:nTrials){
+    diffRewardRPD[j] = (rLL[j] - rSS[j])/rLL[j]
+    diffTimeRPD[j] = (tLL[j] - tSS[j])/tLL[j]
+    theta[j, 4] = phi((diffRewardRPD[j] - diffTimeRPD[j] - deltaPD)/sigmaPD)
+  }
+  # DIRECT DIFFERENCES
+  sigmaDD ~ dlnorm(0, precision)
+  deltaDD ~ dnorm(0, precision)
+  omegaDD ~ dunif(0, 1)
+  for (j in 1:nTrials){
+    diffRewardRDD[j] = omegaDD*(rLL[j] - rSS[j])
+    diffTimeRDD[j] = (1 - omegaDD)*(tLL[j] - tSS[j])
+    theta[j, 5] = phi((diffRewardRDD[j] - diffTimeRDD[j] - deltaDD)/sigmaDD)
+  }
+  # TRADEOFF
+  sigmaTR  ~ dlnorm(0, precision)
+  gammaTR ~ dlnorm(0, precision)
+  tauTR ~ dlnorm(0, precision)
+  kappaTR ~ dlnorm(0, precision)
+  varthetaTR ~ dlnorm(0, precision)
+  for (j in 1:nTrials){
+    valueLLTR[j] = 1/gammaTR*log(1 + gammaTR*rLL[j])        
+    valueSSTR[j] = 1/gammaTR*log(1 + gammaTR*rSS[j])
+    weightLLTR[j] = 1/tauTR*log(1 + tauTR*tLL[j])
+    weightSSTR[j] = 1/tauTR*log(1 + tauTR*tSS[j])
+    qValueTR[j] = valueLLTR[j] - valueSSTR[j]
+    qTimeTR[j] = kappaTR*log(1 + ((weightLLTR[j] - weightSSTR[j])/varthetaTR)^varthetaTR)
+    theta[j, 6] = phi((qValueTR[j] - qTimeTR[j])/sigmaTR)
+  }
+  # ITCH
+  sigmaIT  ~ dlnorm(0, precision)
+  beta0IT ~ dnorm(0, precision)
+  betaRAIT ~ dnorm(0, precision)
+  betaRRIT ~ dnorm(0, precision)
+  betaTAIT ~ dnorm(0, precision)
+  betaTRIT ~ dnorm(0, precision)
+  for (j in 1:nTrials){
+    diffRewardAIT[j] = betaRAIT*(rLL[j] - rSS[j])
+    diffRewardRIT[j] = betaRRIT*((rLL[j] - rSS[j])/(0.5*(rLL[j] + rSS[j])))
+    diffTimeAIT[j] = betaTAIT*(tLL[j] - tSS[j])
+    diffTimeRIT[j] = betaTRIT*((tLL[j] - tSS[j])/(0.5*(tLL[j] + tSS[j])))
+    theta[j, 7] = phi((beta0IT + diffRewardAIT[j] + diffRewardRIT[j] + diffTimeAIT[j] + diffTimeRIT[j])/sigmaIT)
+  }
+  # GUESS 
+  for (j in 1:nTrials){
+      theta[j, 8] = 0.5
+  }
+  # LL 
+  alphaLL ~ dunif(0.9, 1)
+  for (j in 1:nTrials){
+    theta[j, 9] = alphaLL
+  }
+  # SS 
+  alphaSS ~ dunif(0.9, 1)
+  for (j in 1:nTrials){
+    theta[j, 10] = 1-alphaSS
+  }
+}
